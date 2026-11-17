@@ -1,77 +1,100 @@
-# FCVG101 – Task 2: Data Pipeline & Deep-Learning Model
+# FCVG101 — Task 2: Fruit Classification
 
-**Dự án mẫu có thể chạy bằng Python/PyTorch.** Bài toán ví dụ: phân loại ảnh **apple, banana, orange**.
-Không có sẵn dữ liệu ảnh thật trong gói. **Không coi accuracy thu được từ `make_demo_data.py` là kết quả thực nghiệm coursework.**
+This project trains a PyTorch CNN to classify three Fruits-360 categories: **apple**, **banana** and **orange**.
 
-## 1. Chuẩn bị môi trường
+## Repository contents
 
-Mở PowerShell/Terminal tại thư mục chứa `train.py`.
+- `import_fruits360.py`: imports selected source folders into the three target classes.
+- `prepare_dataset.py`: validates image files, removes exact duplicates, records a manifest and creates train/validation/test splits.
+- `check_fruits360_split.py`: checks that generated group IDs do not cross the splits.
+- `src/model.py`: FruitCNN architecture.
+- `src/data_utils.py`: image transforms and dataset utilities.
+- `train_balanced.py`: class-weighted model training and checkpoint selection.
+- `evaluate.py`: held-out custom test-split evaluation.
+- `predict.py`: single-image prediction.
+- `artifacts/model.pth`: trained checkpoint used by Task 3.
+- `artifacts/classes.json`: class mapping.
+- `artifacts/*manifest*.csv`: import and split audit records.
+- `results/`: training history, learning curves, test metrics, predictions and confusion matrix.
 
-```bash
+## Environment
+
+Use Python with versions compatible with your installed PyTorch and Torchvision. The project was run with PyTorch 2.15.0+cpu and Torchvision 0.29.2+cpu in the author's environment.
+
+On Windows PowerShell:
+
+```powershell
 python -m venv .venv
-# Windows PowerShell: .venv\Scripts\Activate.ps1
-# macOS/Linux: source .venv/bin/activate
+.\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-Nếu PowerShell chặn Activate.ps1, dùng `.venv\Scripts\python.exe` trực tiếp để chạy thay vì đổi chính sách toàn máy.
+If you use an already-working Python environment with PyTorch and Torchvision, install the remaining requirements into that same interpreter.
 
-## 2. Chuẩn bị dữ liệu thật
+## Dataset
 
-```text
-data/raw/
-  apple/
-    item001__view1.jpg
-    item002__view1.jpg
-    ...
-  banana/
-    item001__view1.jpg
-    ...
-  orange/
-    item001__view1.jpg
-    ...
-```
+The source is **Fruits-360 100x100**, credited to Mihai Oltean and licensed CC BY-SA 4.0. The dataset contains isolated fruit images on a mostly white background. The licence and upstream README are retained in `fruits-360-100x100-main/`.
 
-Nếu có nhiều ảnh của cùng một vật/phiên chụp, dùng chung tiền tố `item001` trước `__` để những ảnh ấy nằm cùng tập train/val/test. Cần **ít nhất 3 nhóm độc lập/lớp** cho script chạy; trong thực tế nên có nhiều ảnh và nhóm hơn đáng kể. Cần kiểm tra thủ công near-duplicates, nguồn ảnh, license và nhãn.
+The importer mapped selected apple, banana and orange source folders to three labels. Imported counts:
 
-## 3. Chạy tuần tự
+| Class | Images |
+|---|---:|
+| Apple | 15,792 |
+| Banana | 719 |
+| Orange | 1,338 |
+| **Total** | **17,849** |
 
-```bash
+The dataset is imbalanced; class-weighted cross-entropy was therefore used during training.
+
+## Reproduce the recorded run
+
+From this Task 2 project directory:
+
+```powershell
+python import_fruits360.py --source .\fruits-360-100x100-main
 python prepare_dataset.py
-python train.py --epochs 10 --batch-size 32 --lr 0.001
-python evaluate.py
-python predict.py --image data/splits/test/apple/ten_file_thuc_te.jpg
-```
-
-Đổi đường dẫn ở lệnh `predict.py` thành **một tệp thực tế có trong máy**.
-
-Để thử nhanh sự thông suốt của code khi **chưa có ảnh thật**, có thể chạy:
-
-```bash
-python make_demo_data.py
-python prepare_dataset.py
-python train.py --epochs 2
+python check_fruits360_split.py
+python train_balanced.py --epochs 15 --batch-size 32 --lr 0.001
 python evaluate.py
 ```
 
-Sau khi kiểm tra, xóa dữ liệu tổng hợp trong `data/raw/` và thay bằng dữ liệu thật; **tạo lại split và huấn luyện lại**.
+The recorded training/test results in `results/` were produced with the dataset subset and split manifest stored in this project. Do not rerun dataset preparation or training if you intend to preserve the exact recorded split and checkpoint; doing so may overwrite the previous split or model.
 
-## 4. Đầu ra
+For single-image inference:
 
-- `artifacts/data_manifest.csv`: danh sách ảnh, group và split.
-- `artifacts/rejected_images.csv`: nhật ký ảnh hỏng hoặc trùng byte.
-- `artifacts/classes.json`: thứ tự class-to-index.
-- `artifacts/model.pth`: checkpoint tốt nhất theo validation loss.
-- `results/train_history.csv`, `results/learning_curves.png`: kết quả train/val.
-- `results/test_metrics.json`, `results/confusion_matrix.png`, `results/test_predictions.csv`: đánh giá test.
+```powershell
+python predict.py --image .\data\splits\test\apple\YOUR_IMAGE.jpg
+```
 
-## 5. Hạn chế và lưu ý
+Replace `YOUR_IMAGE.jpg` with an existing image filename.
 
-- Tỷ lệ 70/15/15 được chia **theo nhóm trong từng lớp**, tỷ lệ ảnh có thể lệch nếu nhóm có số ảnh khác nhau.
-- Kiểm tra ảnh gần trùng và ảnh cùng phiên chụp bằng mắt hoặc perceptual hash; mã ví dụ chỉ tự bắt **trùng byte** và nhóm theo tiền tố tên tệp.
-- Augmentation chỉ chạy trong train loader, không áp dụng lên validation/test.
-- Chỉ đánh giá final test **sau khi hoàn tất lựa chọn mô hình/hyperparameters**.
-- Softmax output chỉ là **model score**, không tự động là xác suất đã calibration.
-- `artifacts/model.pth` phải đi cùng định nghĩa `FruitCNN` và metadata preprocessing; Task 3 gọi `src.inference.load_model` + `predict_pil`.
-- Dùng dữ liệu có quyền sử dụng, trích dẫn nguồn; không sử dụng số liệu demo như số liệu thực nghiệm.
+## Recorded experiment
+
+- Train / validation / test images: 12,606 / 2,647 / 2,596.
+- CNN: three convolutional stages (16, 32 and 64 channels), ReLU, max-pooling, adaptive average pooling, three output logits.
+- Optimizer: Adam; learning rate 0.001; batch size 32; 15 epochs.
+- Loss: inverse-frequency class-weighted cross-entropy.
+- Best checkpoint: epoch 13, selected by validation macro F1 (weighted validation loss used as tie-break).
+- Best validation accuracy: 99.32%.
+- Best validation macro F1: 98.42%.
+- Custom test split accuracy: **99.35%**.
+- Custom test split macro F1: **0.9804**.
+
+Test confusion matrix: 2,254 apples correctly classified, 9 apples predicted as banana, 8 apples predicted as orange, all 122 banana images correctly classified and all 203 orange images correctly classified.
+
+## Evaluation caveats
+
+1. The importer combines selected folders from both upstream `Training` and `Test` directories before making a new custom split. Therefore, these are **custom-split results**, not the official upstream test-set score.
+2. Group IDs use a `frame_index // 4` rule. The audit confirms IDs do not cross the generated splits, but the 100x100 README does not independently confirm that this rule maps every group to one physical object. Treat physical-object independence as an assumption/limitation.
+3. Near-duplicates are not comprehensively removed by exact-hash checking; perceptual/visual inspection is still recommended.
+4. The white-background dataset is controlled imagery. Do not generalise the reported scores to arbitrary cluttered real-world photographs.
+5. The model's top softmax output is a score, not a calibrated probability of correctness.
+
+## Task 3 integration
+
+Task 3 imports `src.inference.load_model` and `predict_pil`, and loads `artifacts/model.pth`. Keep the checkpoint, `src/model.py`, `src/data_utils.py`, `src/inference.py` and `artifacts/classes.json` together when moving the project.
+
+## Attribution
+
+Mihai Oltean, *Fruits-360 dataset*, https://github.com/fruits-360/fruits-360-100x100 — CC BY-SA 4.0. Attribute the source and preserve the ShareAlike terms when redistributing adapted dataset materials.
