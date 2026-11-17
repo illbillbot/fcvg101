@@ -1,98 +1,70 @@
-# FCVG101 Task 3 – Visual Inspection Assistant
+# FCVG101 Task 3 — Visual Inspection Assistant
 
 A Streamlit application that connects the existing coursework components:
 
 - **Task 1A:** loads `calibration.npz` created by `calibration_task1a.py` and undistorts an uploaded image.
 - **Task 1B:** calls the existing `src/classical_cv.py` helpers for spatial filtering, FFT filtering, Sobel/Canny edges, Harris corners, SIFT matching and RANSAC.
-- **Task 2:** loads `artifacts/model.pth` through the existing `src/inference.py` and classifies uploaded fruit images.
+- **Task 2:** loads `artifacts/model.pth` through `src/inference.py` and classifies uploaded fruit images.
 
-The original task folders remain separate. The app loads Task 1B's helper module by its file path and imports Task 2's `src.inference` from the configured Task 2 directory to avoid confusing the two `src` packages.
+The original task folders remain separate. Task 1B's helper is loaded by absolute file path, while Task 2's inference module is imported from its configured project root to avoid collisions between separate packages named `src`.
 
-## 1. Expected project folders
+## 1. Install and launch
 
-Keep the existing folders and add this Task 3 folder alongside them:
+Use a Python environment that has compatible versions of PyTorch and Torchvision for Task 2, plus the packages in this folder's `requirements.txt`.
 
-```text
-FCVG101/
-├── Task1A_CameraCalibration/
-│   └── results/real/calibration.npz
-├── Task1B_ClassicalCV/
-│   └── src/classical_cv.py
-├── FruitSort_Task2/
-│   ├── artifacts/model.pth
-│   └── src/
-│       ├── model.py
-│       ├── data_utils.py
-│       └── inference.py
-└── Task3_VisualInspectionAssistant/
-    ├── app.py
-    ├── requirements.txt
-    └── README.md
-```
-
-The folder names above are examples. The exact paths are configurable in the application's sidebar.
-
-## 2. Install dependencies
-
-It is fine for Python itself to be installed on `C:` while the coursework is on `D:`. Since Task 2 already has a working virtual environment with PyTorch and Torchvision, the simplest approach is to reuse that environment rather than downloading PyTorch again.
-
-Activate the Task 2 environment (adjust the path if your Task 2 folder differs):
+From this Task 3 folder:
 
 ```powershell
-& "D:\School\fcvg101\materials\CW\FCVG101_Task2_Python_SourceCode\FruitSort_Task2\.venv\Scripts\Activate.ps1"
-python -m pip install streamlit opencv-python
+python -m pip install -r requirements.txt
+python -m streamlit run app.py
 ```
 
-If you prefer an isolated Task 3 environment, create one in this folder and install everything listed in `requirements.txt`. PyTorch and Torchvision may take additional time and disk space to install.
+If PyTorch and Torchvision are already installed in another working Python environment, run the installation and launch commands with that same interpreter (for example, `& $py -m pip install -r requirements.txt` and `& $py -m streamlit run app.py` in PowerShell, where `$py` is the full path to that interpreter).
 
-## 3. Configure and run
+## 2. Configure project paths
 
-Open PowerShell in this Task 3 folder, then run:
+In the application's sidebar, enter the absolute paths to the three existing project folders:
 
-```powershell
-streamlit run app.py
-```
+1. **Task 1A:** folder containing `calibration_task1a.py`.
+2. **Task 1B:** folder containing `src/classical_cv.py`.
+3. **Task 2:** folder containing `src/inference.py`, `src/model.py`, `src/data_utils.py` and `artifacts/model.pth`.
 
-In the left sidebar, enter the absolute paths to:
+The folder names and paths vary between machines. Do not assume the example paths in the code match your computer.
 
-1. Task 1A folder (the one containing `calibration_task1a.py`).
-2. Task 1B folder (the one containing `src/classical_cv.py`).
-3. Task 2 folder (the one containing `src/inference.py` and `artifacts/model.pth`).
-
-The default calibration location is `Task1A/results/real/calibration.npz`. If your real calibration output is stored elsewhere, enter its exact path in the optional calibration-file field.
-
-## 4. Available modes
+## 3. Available modes
 
 ### Fruit classification
 
-Upload an image. The app calls the Task 2 checkpoint and displays the predicted class and top softmax score. The score is not a calibrated probability.
+Upload an image. The app loads the Task 2 checkpoint, applies the saved preprocessing and displays the predicted class and top softmax score. The score is not a calibrated probability of correctness.
 
 ### Camera calibration and undistortion
 
-Upload an image captured by the calibrated camera at the same resolution as the calibration images. The app loads `K`, `dist`, `width` and `height` from the saved `.npz` file and runs `cv2.undistort`.
+Upload an image captured by the calibrated camera at the same resolution as the calibration images. The app loads `K`, `dist`, `width` and `height` from a saved `.npz` file and runs `cv2.undistort`.
 
-This mode consumes previously generated calibration parameters; it does not capture checkerboard images or run `cv2.calibrateCamera` in the web UI.
+This mode consumes previously generated calibration parameters; it does not capture checkerboard images or execute `cv2.calibrateCamera` in the browser. The default expected file is `Task1A/results/real/calibration.npz`; use the optional sidebar calibration path if your file is elsewhere.
 
 ### Image filtering, FFT and edges
 
-Upload one image and select Box, Gaussian, Median, ideal FFT low-pass/high-pass, Gaussian FFT low-pass, Sobel magnitude, Canny edges or Harris corners.
+Upload one image and select Box, Gaussian, Median, ideal FFT low-pass/high-pass, Gaussian FFT low-pass, Sobel gradient magnitude, Canny edges or Harris corners.
 
 ### Feature detection and matching
 
 Upload two views of the same scene with overlapping content. The app displays SIFT matches after Lowe's ratio test and reports RANSAC inliers.
 
-## 5. Troubleshooting
+## 4. Troubleshooting
 
 - **Task 1B module not found:** check that the configured Task 1B directory contains `src/classical_cv.py`.
 - **Task 2 module/checkpoint not found:** check that the configured Task 2 directory contains `src/inference.py`, `src/model.py`, `src/data_utils.py` and `artifacts/model.pth`.
-- **Calibration file not found:** run Task 1A with real checkerboard photographs and use the resulting `calibration.npz` path. Do not use synthetic calibration values as real camera measurements.
-- **Resolution mismatch:** undistortion requires an image with the calibration image resolution unless the intrinsic matrix is appropriately scaled.
-- **Torch/Torchvision import error:** use a compatible PyTorch/Torchvision installation in the environment running Streamlit.
-- **SIFT unavailable:** install a compatible OpenCV build exposing `cv2.SIFT_create()`.
+- **Calibration file not found:** run Task 1A with calibration images and set the correct `.npz` path. This project only contains synthetic calibration views, so the generated parameters are not real-camera measurements.
+- **Resolution mismatch:** undistortion requires an image at the calibration resolution unless the intrinsic matrix is appropriately scaled.
+- **Torch/Torchvision import error:** run Streamlit in the same Python environment where a compatible PyTorch and Torchvision pair is installed.
+- **SIFT unavailable:** use a compatible OpenCV build exposing `cv2.SIFT_create()`.
 
-## 6. Limitations to state in the coursework report
+## 5. Limitations
 
-- The mode selector explicitly routes the user's chosen task to the corresponding processing module; it is not a natural-language intent model.
-- Calibration mode uses saved Task 1A parameters rather than recalibrating from a new checkerboard in the app.
-- Fruit classification performance is measured on the selected Fruits-360 dataset and its custom split; it should not be presented as proof of equivalent performance on arbitrary real-world scenes.
-- The Task 1B functions and Task 2 model are reused rather than reimplemented in the Streamlit interface.
+- The dropdown explicitly routes the user's selected mode to a processing module; it is not a natural-language intent classifier.
+- Calibration mode consumes saved Task 1A parameters rather than recalibrating in the app.
+- Task 1A has synthetic-only calibration evidence; no physical-camera parameters were demonstrated.
+- Task 1B matching evidence in the submitted app test uses a generated transformed scene pair. A real overlapping pair was not supplied.
+- Task 2 metrics were measured on the selected Fruits-360 dataset and the project's custom split; they should not be generalized to arbitrary real-world photographs.
+- The Streamlit interface reuses the Task 1B functions and Task 2 model instead of duplicating those algorithms.
