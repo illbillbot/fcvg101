@@ -1,0 +1,24 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Jupyter temporary files
+.ipynb_checkpoints/
+
+# Local editor / OS files
+.DS_Store
+Thumbs.db
+
+# Local Streamlit secrets (never commit credentials)
+.streamlit/secrets.toml
+
+# Temporary outputs
+*.tmp
+*.log
