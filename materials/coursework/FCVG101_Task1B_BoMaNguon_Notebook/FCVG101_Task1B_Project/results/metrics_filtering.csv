@@ -1,0 +1,9 @@
+﻿noise,method,MSE,PSNR_dB
+Gaussian noise (sigma=20),Noisy,315.925,23.135
+Gaussian noise (sigma=20),Box,625.744,20.167
+Gaussian noise (sigma=20),Gaussian,384.658,22.28
+Gaussian noise (sigma=20),Median,261.291,23.96
+Salt & pepper (5%),Noisy,1322.782,16.916
+Salt & pepper (5%),Box,694.36,19.715
+Salt & pepper (5%),Gaussian,478.227,21.334
+Salt & pepper (5%),Median,240.093,24.327

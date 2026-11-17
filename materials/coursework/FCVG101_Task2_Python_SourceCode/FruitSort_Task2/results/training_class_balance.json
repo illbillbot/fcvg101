@@ -1,0 +1,14 @@
+{
+  "apple": {
+    "train_images": 11157,
+    "class_weight": 0.37662455439567566
+  },
+  "banana": {
+    "train_images": 514,
+    "class_weight": 8.175097465515137
+  },
+  "orange": {
+    "train_images": 935,
+    "class_weight": 4.494117736816406
+  }
+}
