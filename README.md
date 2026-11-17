@@ -81,7 +81,7 @@ python train_balanced.py --epochs 15 --batch-size 32 --lr 0.001
 python evaluate.py
 ```
 
-The Task 2 folder in this repository contains the trained checkpoint at `artifacts/model.pth`, class metadata, experiment result files, import/split manifests, the imported three-class subset under `data/raw/` and the prepared images under `data/splits/`. A Fruits-360 source folder is also present; its committed contents should not be assumed to be a complete mirror of the full upstream release. For a fresh import, use the complete official dataset from the upstream source and pass its extracted folder to `import_fruits360.py`.
+The Task 2 folder in this repository contains the [trained checkpoint (`model.pth`)](materials/coursework/FCVG101_Task2_Python_SourceCode/FruitSort_Task2/artifacts/model.pth), [class metadata (`classes.json`)](materials/coursework/FCVG101_Task2_Python_SourceCode/FruitSort_Task2/artifacts/classes.json), experiment result files, import/split manifests, the imported three-class subset under `data/raw/` and the prepared images under `data/splits/`. A Fruits-360 source folder is also present; its committed contents should not be assumed to be a complete mirror of the full upstream release. For a fresh import, use the complete official dataset from the upstream source and pass its extracted folder to `import_fruits360.py`.
 
 To make a single-image prediction after preparing the checkpoint and environment:
 
